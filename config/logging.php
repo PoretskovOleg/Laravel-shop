@@ -133,7 +133,7 @@ return [
             'via' => TelegramLoggerFactory::class,
             'level' => env('LOG_LEVEL', 'debug'),
             'chat_id' => env('TELEGRAM_LOGGER_BOT_CHAT_ID'),
-            'token' => env('TELEGRAM_LOGGER_BOT_SECRET_KEY'),
+            'token' => env('TELEGRAM_LOGGER_BOT_TOKEN'),
         ],
     ],
 ];
