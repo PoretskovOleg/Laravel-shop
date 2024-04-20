@@ -10,11 +10,13 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class BrandFactory extends Factory
 {
+    protected $model = Brand::class;
+
     public function definition(): array
     {
         return [
             'title' => $this->faker->company(),
-            'thumbnail' => $this->faker->loremFlickrImage('images/brands'),
+            'thumbnail' => $this->faker->fixturesImage('brands', 'images/brands'),
         ];
     }
 }
