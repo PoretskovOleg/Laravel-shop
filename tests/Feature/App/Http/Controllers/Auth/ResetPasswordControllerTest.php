@@ -23,7 +23,10 @@ class ResetPasswordControllerTest extends TestCase
         $this->assertGuest();
 
         $response = $this->get(
-            action([ResetPasswordController::class, 'form'], ['token' => Str::random(20)]),
+            action(
+                [ResetPasswordController::class, 'form'],
+                ['token' => Str::random(20)]
+            )
         );
 
         $this->assertGuest();
@@ -40,7 +43,10 @@ class ResetPasswordControllerTest extends TestCase
 
         $response = $this->actingAs($user)
             ->get(
-                action([ResetPasswordController::class, 'form'], ['token' => Str::random(20)]),
+                action(
+                    [ResetPasswordController::class, 'form'],
+                    ['token' => Str::random(20)]
+                ),
             );
 
         $this->assertAuthenticated();
@@ -91,6 +97,9 @@ class ResetPasswordControllerTest extends TestCase
             'email' => 'example@yandex.ru',
             'password' => 'Pass123Word',
         ])->first();
+
+        $user->setRememberToken(Str::random(20));
+        $user->save();
 
         $token = Str::random(20);
 

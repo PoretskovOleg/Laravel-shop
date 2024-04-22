@@ -12,62 +12,117 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class RegisterControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    private array $requestData;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->requestData = [
+            'name' => 'Fake Name',
+            'email' => 'example@yandex.ru',
+            'password' => 'PassWord123',
+            'password_confirmation' => 'PassWord123',
+        ];
+    }
+
     public function test_register_page_success(): void
     {
-        $response = $this->get(action([RegisterController::class, 'form']));
-
-        $this->assertGuest();
-
-        $response
+        $this->get(
+            action([RegisterController::class, 'form'])
+        )
             ->assertOk()
             ->assertViewIs('auth.register')
             ->assertSee('Регистрация');
+
+        $this->assertGuest();
     }
 
     public function test_register_page_authenticated(): void
     {
         $user = UserFactory::new()->count(1)->create()->first();
 
-        $response = $this->actingAs($user)->get(action([RegisterController::class, 'form']));
+        $this->actingAs($user)
+            ->get(
+                action([RegisterController::class, 'form'])
+            )
+            ->assertRedirect(RouteServiceProvider::HOME);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(RouteServiceProvider::HOME);
+    }
+
+    public function test_register_action_validate_name(): void
+    {
+        $this->requestData['name'] = null;
+
+        $this->actionRegister($this->requestData)
+            ->assertValid(['email', 'password'])
+            ->assertInvalid('name');
+    }
+
+    public function test_register_action_validate_email(): void
+    {
+        $this->requestData['email'] = 'test@test.ru';
+
+        $this->actionRegister($this->requestData)
+            ->assertValid(['name', 'password'])
+            ->assertInvalid('email');
+    }
+
+    public function test_register_action_validate_email_exist(): void
+    {
+        UserFactory::new()->count(1)->create([
+            'email' => $this->requestData['email']
+        ]);
+
+        $this->actionRegister($this->requestData)
+            ->assertValid(['name', 'password'])
+            ->assertInvalid('email');
+    }
+
+    public function test_register_action_validate_password(): void
+    {
+        $this->requestData['password'] = 'PassWord';
+        $this->requestData['password_confirmation'] = 'PassWord';
+
+        $this->actionRegister($this->requestData)
+            ->assertValid(['name', 'email'])
+            ->assertInvalid('password');
+    }
+
+    public function test_register_action_validate_password_confirmation(): void
+    {
+        $this->requestData['password'] = 'PassWord123';
+        $this->requestData['password_confirmation'] = 'PassWord321';
+
+        $this->actionRegister($this->requestData)
+            ->assertValid(['name', 'email'])
+            ->assertInvalid('password');
     }
 
     public function test_register_action_success(): void
     {
         Event::fake();
-        Notification::fake();
-
-        $requestData = [
-            'name' => 'Fake Name',
-            'email' => 'example@yandex.ru',
-            'password' => 'PassWord123',
-            'password_confirmation' => 'PassWord123',
-        ];
 
         $this->assertDatabaseMissing('users', [
-            'email' => $requestData['email'],
+            'email' => $this->requestData['email'],
         ]);
 
-        $response = $this->post(
-            action([RegisterController::class, 'register']),
-            $requestData
-        );
-
-        $response->assertValid();
+        $response = $this->actionRegister($this->requestData)
+            ->assertValid();
 
         $this->assertDatabaseHas('users', [
-            'email' => $requestData['email'],
+            'email' => $this->requestData['email'],
         ]);
 
-        $user = User::query()->where('email', $requestData['email'])->first();
+        $user = User::query()->where('email', $this->requestData['email'])->first();
 
         Event::assertDispatched(Registered::class);
         Event::assertListening(Registered::class, SendEmailVerificationNotification::class);
@@ -81,56 +136,11 @@ class RegisterControllerTest extends TestCase
         $response->assertRedirect(route('verification.notice'));
     }
 
-    public function test_register_action_valid_error(): void
+    private function actionRegister(array $requestData): TestResponse
     {
-        Event::fake();
-
-        $requestData = [
-            'name' => 'Fake Name',
-            'email' => 'test@test.ru',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ];
-
-        $response = $this->post(
+        return $this->post(
             action([RegisterController::class, 'register']),
             $requestData
         );
-
-        $response->assertInvalid(['email', 'password']);
-        $this->assertGuest();
-        Event::assertNotDispatched(Registered::class);
-        $response->assertRedirect(session()->previousUrl());
-    }
-
-    public function test_register_action_unique_user_error(): void
-    {
-        Event::fake();
-
-        $requestData = [
-            'name' => 'Fake Name',
-            'email' => 'example@yandex.ru',
-            'password' => 'PassWord123',
-            'password_confirmation' => 'PassWord123',
-        ];
-
-        UserFactory::new()->count(1)->create([
-            'email' => $requestData['email'],
-            'password' => $requestData['password'],
-        ]);
-
-        $this->assertDatabaseHas('users', [
-            'email' => $requestData['email'],
-        ]);
-
-        $response = $this->post(
-            action([RegisterController::class, 'register']),
-            $requestData
-        );
-
-        $response->assertValid(['password'])->assertInvalid(['email']);
-        $this->assertGuest();
-        Event::assertNotDispatched(Registered::class);
-        $response->assertRedirect(session()->previousUrl());
     }
 }

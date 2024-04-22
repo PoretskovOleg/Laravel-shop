@@ -29,12 +29,12 @@ class SocialAuthController extends Controller
         }
 
         $driverUser = Socialite::driver($driver)->user();
-        $driverUserEmail = str($driverUser->email)->squish()->lower()->value();
+        $driverUserEmail = str($driverUser->getEmail())->squish()->lower()->value();
 
         $user = User::query()->updateOrCreate([
-            $driver.'_id' => $driverUser->id,
+            $driver.'_id' => $driverUser->getId(),
         ], [
-            'name' => $driverUser->name ?? $driverUserEmail,
+            'name' => $driverUser->getName() ?? $driverUserEmail,
             'email' => $driverUserEmail,
             'password' => Str::random(),
         ]);

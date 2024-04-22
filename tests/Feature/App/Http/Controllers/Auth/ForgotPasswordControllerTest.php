@@ -40,8 +40,6 @@ class ForgotPasswordControllerTest extends TestCase
 
     public function test_forgot_password_action_success(): void
     {
-        Notification::fake();
-
         $userEmail = 'example@yandex.ru';
         /** @var User $user */
         $user = UserFactory::new()->count(1)->create([
@@ -68,8 +66,6 @@ class ForgotPasswordControllerTest extends TestCase
 
     public function test_forgot_password_action_error(): void
     {
-        Notification::fake();
-
         $response = $this->post(
             action([ForgotPasswordController::class, 'forgotPassword']),
             ['email' => 'example@yandex.ru']

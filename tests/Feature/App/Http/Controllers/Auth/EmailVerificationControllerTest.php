@@ -23,30 +23,27 @@ class EmailVerificationControllerTest extends TestCase
     {
         $user = UserFactory::new()->count(1)->create()->first();
 
-        $response = $this->actingAs($user)->get(action([EmailVerificationController::class, 'page']));
-
-        $this->assertAuthenticatedAs($user);
-
-        $response
+        $this->actingAs($user)->get(action([EmailVerificationController::class, 'page']))
             ->assertOk()
             ->assertViewIs('auth.verify-email')
             ->assertSee('Необходимо подтвердить e-mail');
+
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_email_verification_page_unauthenticated(): void
     {
         $this->assertGuest();
 
-        $response = $this->get(action([EmailVerificationController::class, 'page']));
+        $this->get(action([EmailVerificationController::class, 'page']))
+            ->assertRedirect(route('login'));
 
         $this->assertGuest();
-        $response->assertRedirect(route('login'));
     }
 
     public function test_email_verification_action_success(): void
     {
         Event::fake();
-        Notification::fake();
 
         /** @var User $user */
         $user = UserFactory::new()->count(1)->create(['email_verified_at' => null])->first();
@@ -77,8 +74,6 @@ class EmailVerificationControllerTest extends TestCase
 
     public function test_email_verification_send_success(): void
     {
-        Notification::fake();
-
         /** @var User $user */
         $user = UserFactory::new()->count(1)->create(['email_verified_at' => null])->first();
 
