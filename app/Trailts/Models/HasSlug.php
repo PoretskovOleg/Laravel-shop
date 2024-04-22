@@ -12,28 +12,35 @@ trait HasSlug
     protected static function bootHasSlug(): void
     {
         static::creating(function (Model $model) {
-            $slug = $model->slug ?? Str::slug($model->{self::slugFrom()});
-            $model->{self::slugColumn()} = self::uniqueSlug($slug);
+            $model->setSlug();
         });
     }
 
-    public static function slugFrom(): string
+    private function setSlug(): void
+    {
+        $slug = $this->{$this->slugColumn()} ?? Str::slug($this->{$this->slugFrom()});
+
+        $this->{$this->slugColumn()} = $this->uniqueSlug($slug);
+    }
+
+    private function slugFrom(): string
     {
         return 'title';
     }
 
-    public static function slugColumn(): string
+    private function slugColumn(): string
     {
         return 'slug';
     }
 
-    private static function uniqueSlug(string $slug): string
+    private function uniqueSlug(string $slug): string
     {
-        $columnSlug = self::slugColumn();
+        $slugColumn = $this->slugColumn();
         $relatedSlugs = self::query()
-            ->where($columnSlug, 'like', $slug.'%')
-            ->orderBy($columnSlug)
-            ->pluck('id', $columnSlug)
+            ->where($slugColumn, 'like', $slug.'%')
+            ->orderBy($slugColumn)
+            ->withoutGlobalScopes()
+            ->pluck('id', $slugColumn)
             ->toArray();
 
         if (empty($relatedSlugs)) {

@@ -10,6 +10,9 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
+use Services\Telegram\TelegramBotApi;
+use Services\Telegram\TelegramBotApiContract;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,7 +29,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Model::shouldBeStrict(! app()->isProduction());
+        Model::shouldBeStrict(!app()->isProduction());
+
+        $this->app->bind(TelegramBotApiContract::class, TelegramBotApi::class);
 
         if (app()->isProduction()) {
             DB::whenQueryingForLongerThan(
@@ -58,5 +63,9 @@ class AppServiceProvider extends ServiceProvider
                 }
             );
         }
+
+        Password::defaults(function () {
+            return Password::min(8)->mixedCase()->letters()->numbers();
+        });
     }
 }
