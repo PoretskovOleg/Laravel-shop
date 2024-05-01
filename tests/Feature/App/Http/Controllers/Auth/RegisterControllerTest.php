@@ -79,7 +79,7 @@ class RegisterControllerTest extends TestCase
     public function test_register_action_validate_email_exist(): void
     {
         UserFactory::new()->count(1)->create([
-            'email' => $this->requestData['email']
+            'email' => $this->requestData['email'],
         ]);
 
         $this->actionRegister($this->requestData)

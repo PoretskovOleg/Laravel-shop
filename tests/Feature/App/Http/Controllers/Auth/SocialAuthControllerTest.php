@@ -56,7 +56,7 @@ class SocialAuthControllerTest extends TestCase
         $this->assertGuest();
 
         $this->assertDatabaseMissing('users', [
-            'github_id' => $githubId
+            'github_id' => $githubId,
         ]);
 
         $response = $this->get(
@@ -67,7 +67,7 @@ class SocialAuthControllerTest extends TestCase
         );
 
         $this->assertDatabaseHas('users', [
-            'github_id' => $githubId
+            'github_id' => $githubId,
         ]);
 
         $user = User::query()->where('github_id', $githubId)->first();
@@ -86,7 +86,7 @@ class SocialAuthControllerTest extends TestCase
         $this->mockingSocialite($githubId);
 
         $user = UserFactory::new()->count(1)->create([
-            'github_id' => $githubId
+            'github_id' => $githubId,
         ])->first();
 
         Event::fake();
@@ -94,7 +94,7 @@ class SocialAuthControllerTest extends TestCase
         $this->assertGuest();
 
         $this->assertDatabaseHas('users', [
-            'github_id' => $githubId
+            'github_id' => $githubId,
         ]);
 
         $response = $this->get(
