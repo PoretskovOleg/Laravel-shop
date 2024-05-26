@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Support\Traits\Models\HasSlug;
 
 /**
+ * @property int $id
  * @property string $slug
  * @property string $title
  * @property bool $on_home_page
