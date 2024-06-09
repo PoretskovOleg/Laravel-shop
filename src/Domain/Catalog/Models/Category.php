@@ -2,9 +2,10 @@
 
 namespace Domain\Catalog\Models;
 
-use App\Models\Product;
 use Domain\Catalog\Collections\CategoryCollection;
 use Domain\Catalog\QueryBuilders\CategoryQueryBuilder;
+use Domain\Product\Collections\ProductCollection;
+use Domain\Product\Models\Product;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,6 +18,7 @@ use Support\Traits\Models\HasSlug;
  * @property string $title
  * @property bool $on_home_page
  * @property int $sorting
+ * @property ProductCollection<Product> $products
  *
  * @method static CategoryQueryBuilder|Category query()
  */
